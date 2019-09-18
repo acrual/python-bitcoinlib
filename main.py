@@ -29,16 +29,18 @@ class Direccion(object):
             self.saldo = self.saldo - self.amount
 
 def obtenerTransacciones(desde_que_bloque, hasta_que_bloque):
+    amount = 0
+    resultados = []
     for i in range(desde_que_bloque, hasta_que_bloque):
         bloque_actual = i
         info = p.getblockhash(i)
         bloque_explorado = p.getblock(info)
         txs = bloque_explorado['tx'][0]
-        raw = p.getrawtransactions(txs)
+        raw = p.getrawtransaction(txs)
         txid = p.decoderawtransaction(raw)
         for j in range(len(txid['vout'])):
             amount = amount + txid['vout'][j]['value']
-            resultados.append(bloque_actual, txid, amount, txid['vout'])
+            resultados.append(txid)
     return resultados
 
 
