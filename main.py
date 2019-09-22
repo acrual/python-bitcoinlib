@@ -1,32 +1,36 @@
-# obtener los outputs e inputs de cada transacción, y estas de cada bloque
-# en esos outputs e inputs hay dos opciones: si es output, se le resta al importe inicial y si es input se le suma
-# en cualquiera de los dos casos, almacenamos el id de la tx para poder saber el histórico de ese output.
-# si la dirección no estaba en la bbdd, entonces se le suma a cero (empieza desde cero)
-# para hacerlo con clases, la clase es Dirección, cuyos atributos son address, saldo y txlist
-
 import bitcoin.core
 from bitcoin.rpc import RawProxy
 
-class Direccion(object):
-    txlist = []
-    def __init__(self, address, saldo, txlist):
-        self.address = address
-        self.saldo = saldo
-        self.txlist = txlist
+def esCoinbase(txid):
+    raw = p.getrawtransaction(txid)
+    tx = p.decoderawtransaction(raw)
+    if 'coinbase' in list(tx['vin'][0]):
+        return True
 
-    def __str__(self):
-        return "La dirección " + str(self.address) + " tiene un saldo de " + str(self.saldo) + " bitcoins"
+def obtenerVins(txid):
+    if not esCoinbase(txid):
+        raw = p.getrawtransaction(txid)
+        tx = p.decoderawtransaction(raw)
+        for i in range(len(tx['vin'])):
+            txid = tx['vin'][i]['txid']
+            n = tx['vin'][i]['vout']
+            return obtenerVouts(txid, n)
+    else:
+        return "sorry, es que es coinbase"
 
-    def movimientoDetectado(self, input, amount, tx):
-        self.input = input
-        self.amount = amount
-        self.txlist.append(tx)
-
-    def cambiarSaldo(self):
-        if self.input:
-            self.saldo = self.saldo + self.amount
-        else:
-            self.saldo = self.saldo - self.amount
+def obtenerVouts(txid, numVout):
+    cantidades = []
+    direcciones = []
+    raw = p.getrawtransaction(txid)
+    tx = p.decoderawtransaction(raw)
+    if numVout == 100000:
+        for i in range(len(tx['vout'])):
+            cantidades.append(str(tx['vout'][i]['value']))
+            direcciones.append(str(tx['vout'][i]['scriptPubKey']['addresses'][0]))
+    else:
+        cantidades.append(str(tx['vout'][numVout]['value']))
+        direcciones.append(str(tx['vout'][numVout]['scriptPubKey']['addresses'][0]))
+    return cantidades, direcciones
 
 def obtenerTransacciones(desde_que_bloque, hasta_que_bloque):
     amount = 0
@@ -35,18 +39,19 @@ def obtenerTransacciones(desde_que_bloque, hasta_que_bloque):
         bloque_actual = i
         info = p.getblockhash(i)
         bloque_explorado = p.getblock(info)
-        txs = bloque_explorado['tx'][0]
-        raw = p.getrawtransaction(txs)
-        txid = p.decoderawtransaction(raw)
-        for j in range(len(txid['vout'])):
-            amount = amount + txid['vout'][j]['value']
-            resultados.append(txid)
-    return resultados
-
+        for j in range(len(bloque_explorado['tx'])):
+            raw = p.getrawtransaction(bloque_explorado['tx'][j])
+            tx = p.decoderawtransaction(raw)
+            print(i, j, tx['txid'])
+    print(obtenerVins(tx['txid']))
+    print(obtenerVins(tx['txid'])[1])
+    for i in range(len(obtenerVins(tx['txid']))):
+        print(obtenerVins(tx['txid'])[i][0])
+    for i in range(len(obtenerVouts(tx['txid'], 100000))):
+        print(obtenerVouts(tx['txid'], 100000)[0])
 
 p = RawProxy()
 info = p.getblockchaininfo()
 hasta_que_bloque = info['blocks']
-resultados = obtenerTransacciones(1, 10)
-print(resultados)
+resultados = obtenerTransacciones(595770, 595771)
 
