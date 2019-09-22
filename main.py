@@ -2,6 +2,7 @@ import bitcoin.core
 from bitcoin.rpc import RawProxy
 
 # añadiendo branch acrualbranch para practicar con git
+# añadiendo segunda linea de comentarios git
 
 def esCoinbase(txid):
     raw = p.getrawtransaction(txid)
