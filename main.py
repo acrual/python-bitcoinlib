@@ -1,6 +1,7 @@
 import bitcoin.core
 from bitcoin.rpc import RawProxy
 
+<<<<<<< HEAD
 # Txid es cada txid con sus inputs y sus outputs, sus fees de minería, etc...
 class Txid(object):
     def __init__(self, txid):
@@ -38,6 +39,10 @@ def esNullType(txid, numVout):
         return True
     else:
         return False
+=======
+# añadiendo branch acrualbranch para practicar con git
+# añadiendo segunda linea de comentarios git
+>>>>>>> 9425985f5b658272dfe2a3c4f7d48a53bca9d1f3
 
 def esCoinbase(txid):
     raw = p.getrawtransaction(txid)
